@@ -58,7 +58,7 @@ npm run demo            # buggy cache, 1000 seeds
 npm run demo -- --fixed # same seeds, no violations
 ```
 
-Set `NO_COLOR=1` for plain output.
+Set `NO_COLOR=1` for plain output. The timeline is drawn from the real seed-1 history with `npm run docs:history`.
 
 ## How it works
 

@@ -43,6 +43,12 @@ export async function history(seed: number, buggy: boolean): Promise<Op[]> {
   return ops;
 }
 
+/** The operation the checker could not place: the earliest-returning one outside the longest valid prefix. */
+export function firstUnplaced(ops: Op[], longest: unknown[]): Op {
+  const placed = new Set(longest);
+  return ops.filter((o) => !placed.has(o.id)).sort((a, b) => a.ret - b.ret)[0] as Op;
+}
+
 const color = !process.env.NO_COLOR && process.stdout.isTTY !== false;
 const paint = (code: string) => (s: string): string => (color ? `\x1b[${code}m${s}\x1b[0m` : s);
 const red = paint("1;31"), green = paint("1;32"), dim = paint("2"), bold = paint("1"), yellow = paint("33");
@@ -65,12 +71,10 @@ async function main(): Promise<void> {
     failures++;
     if (shown || r.result !== "illegal") continue;
     shown = true;
-    const placed = new Set(r.longest);
-    const stuck = ops.filter((o) => !placed.has(o.id)).sort((a, b) => a.ret - b.ret)[0] as Op;
+    const stuck = firstUnplaced(ops, r.longest);
     console.log(`${bold(`seed ${seed}`)}  ${red("NOT LINEARIZABLE")}`);
-    console.log(dim(`  longest linearizable prefix: ${r.longest.length} of ${ops.length} operations`));
-    console.log(dim("  operations around the first one that cannot be placed:"));
-    for (const op of ops.filter((o) => o.ret >= stuck.call - 3 && o.call <= stuck.ret).sort((a, b) => a.call - b.call)) {
+    console.log(dim(`  ${r.longest.length} of ${ops.length} operations fit in a valid order; this one never does:`));
+    for (const op of [...ops].sort((a, b) => a.call - b.call || a.ret - b.ret)) {
       console.log(op === stuck ? red(`  ✗ ${describe(op)}   ← cannot be linearized`) : `    ${describe(op)}`);
     }
     console.log();

@@ -24,7 +24,8 @@
     "lint": "eslint .",
     "test": "vitest run",
     "demo": "node --experimental-strip-types examples/cache-demo.ts",
-    "prepare": "tsc -p tsconfig.build.json"
+    "prepare": "tsc -p tsconfig.build.json",
+    "docs:history": "node --experimental-strip-types --no-warnings scripts/render-history.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
