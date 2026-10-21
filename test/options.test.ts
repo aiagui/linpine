@@ -71,3 +71,34 @@ describe("stateKey inside objects", () => {
     expect(stateKey(["a,b"])).not.toBe(stateKey(["a", "b"]));
   });
 });
+
+describe("stateKey with non-plain values", () => {
+  it("Orbit's repro: concurrent writes of different Dates, then a read of the first, is ok", () => {
+    const A = new Date(0), B = new Date(1);
+    const h = [
+      { call: 0, ret: 10, input: { op: "write" as const, value: A } },
+      { call: 0, ret: 10, input: { op: "write" as const, value: B } },
+      { call: 11, ret: 12, input: { op: "read" as const }, output: A },
+    ];
+    expect(check(register(A), h).result).toBe("ok");
+    expect(check(register(A), [h[1], h[0], h[2]] as typeof h).result).toBe("ok");
+  });
+  it("gives distinct Dates distinct keys, and an invalid Date its own", () => {
+    const keys = [new Date(0), new Date(1), new Date(NaN), 0, { t: new Date(0) }].map(stateKey);
+    expect(new Set(keys).size).toBe(keys.length);
+    expect(stateKey(new Date(5))).toBe(stateKey(new Date(5)));
+  });
+  it("throws a TypeError for values it cannot key", () => {
+    class Point { x = 1; }
+    const cyclic: Record<string, unknown> = {};
+    cyclic.self = cyclic;
+    const bad: unknown[] = [new Map(), new Set(), new Point(), () => 1, Symbol("s"), cyclic, [cyclic], { [Symbol("k")]: 1 }];
+    for (const v of bad) expect(() => stateKey(v), String(typeof v)).toThrow(TypeError);
+    expect(() => stateKey(new Map())).toThrow(/own key/);
+  });
+  it("allows shared (non-cyclic) references and null-prototype objects", () => {
+    const shared = { a: 1 };
+    expect(() => stateKey([shared, shared])).not.toThrow();
+    expect(stateKey(Object.assign(Object.create(null) as object, { a: 1 }))).toBe(stateKey({ a: 1 }));
+  });
+});
