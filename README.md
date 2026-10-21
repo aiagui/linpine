@@ -24,7 +24,7 @@ import { check, register } from "linpine";
 const history = [
   { call: 0, ret: 2, input: { op: "write", value: 1 } },
   { call: 3, ret: 4, input: { op: "read" }, output: 0 }, // stale
-];
+] as const;
 
 const r = check(register(0), history, { timeoutMs: 1000 });
 // { result: "illegal", partition: 0, longest: [0], steps: 4 }
@@ -91,6 +91,8 @@ Pass `strictTies: true` to treat them as ordered.
 - The check runs synchronously and blocks the event loop until it finishes or hits its budget.
 - Timestamps must come from one clock. For several processes, use a shared or virtual clock,
   or widen the intervals.
+- `longest` lists the operations that fit in a valid order before the search got stuck. It can
+  be empty, for example when the very first operation already returns an impossible value.
 - linpine checks a history you give it. It does not generate workloads or inject faults.
 
 ## License

@@ -1,24 +1,53 @@
 import type { Model, Operation } from "./types.ts";
 
 /**
- * A memo key that keeps NaN, null, undefined, Infinity, -0 and strings apart.
- * Values inside objects and arrays go through JSON.stringify, where NaN and Infinity become null:
- * give such models their own `key`.
+ * A memo key that keeps NaN, null, undefined, Infinity, -0, bigints and strings apart.
+ * It recurses into arrays and plain objects (keys in insertion order) and keys a Date by its
+ * time. Anything else (Map, Set, class instances, functions, symbols, symbol-keyed properties,
+ * cycles) throws a TypeError: give such models their own `key`.
  */
 export function stateKey(v: unknown): string {
+  return encode(v, new WeakSet<object>());
+}
+
+const unsupported = (what: string): TypeError =>
+  new TypeError(`stateKey: cannot key ${what}; give the model its own key(state)`);
+
+function encode(v: unknown, path: WeakSet<object>): string {
   switch (typeof v) {
     case "number":
       return Object.is(v, -0) ? "n:-0" : `n:${String(v)}`;
     case "string":
-      return `s:${v}`;
+      return `s:${JSON.stringify(v)}`;
     case "bigint":
       return `b:${String(v)}`;
     case "boolean":
       return `t:${String(v)}`;
     case "undefined":
       return "u";
+    case "object": {
+      if (v === null) return "null";
+      if (v instanceof Date) return Number.isNaN(v.getTime()) ? "d:invalid" : `d:${v.getTime()}`;
+      const proto: unknown = Object.getPrototypeOf(v);
+      const isArray = Array.isArray(v);
+      if (!isArray && proto !== Object.prototype && proto !== null)
+        throw unsupported(`a ${(v as { constructor?: { name?: string } }).constructor?.name ?? "non-plain object"}`);
+      if (Object.getOwnPropertySymbols(v).length > 0) throw unsupported("an object with symbol keys");
+      if (path.has(v)) throw unsupported("a cyclic value");
+      path.add(v);
+      try {
+        if (isArray) {
+          const items: string[] = [];
+          for (let i = 0; i < v.length; i++) items.push(i in v ? encode(v[i], path) : "hole");
+          return `[${items.join(",")}]`;
+        }
+        return `{${Object.entries(v).map(([k, x]) => `${JSON.stringify(k)}:${encode(x, path)}`).join(",")}}`;
+      } finally {
+        path.delete(v);
+      }
+    }
     default:
-      return v === null ? "null" : `j:${JSON.stringify(v)}`;
+      throw unsupported(`a ${typeof v}`);
   }
 }
 
