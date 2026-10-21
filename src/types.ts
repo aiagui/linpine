@@ -22,13 +22,14 @@ export interface Model<S, I = unknown, O = unknown> {
 }
 
 export interface CheckOptions {
-  /** Give up after this many search steps and return "unknown". */
+  /** Must be a number >= 0. Per partition: give up after this many search steps and return "unknown". */
   maxSteps?: number;
-  /** Give up after this many milliseconds and return "unknown". */
+  /** Must be a number >= 0. For the whole call: give up after this many milliseconds and return "unknown". */
   timeoutMs?: number;
   /**
    * When a return and a call share a timestamp, treat them as not overlapping.
-   * Default false: they overlap, which matches Porcupine.
+   * Default false: they overlap, which matches Porcupine. A zero-duration operation
+   * overlaps everything else at its instant in both modes.
    */
   strictTies?: boolean;
 }

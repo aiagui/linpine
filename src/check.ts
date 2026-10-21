@@ -41,14 +41,22 @@ function checkPartition<S, I, O>(
 ): { result: "ok" | "illegal" | "unknown"; steps: number; longest: unknown[] } {
   const n = ops.length;
   const words = (n + 31) >>> 5;
-  const first: 0 | 1 = strictTies ? 1 : 0; // which kind goes first on equal timestamps
   const head: Head = { next: null };
   const nodes: Node[] = [];
   ops.forEach((op, i) => {
     nodes.push({ t: op.call, kind: 0, i, prev: head, next: null, match: null });
     nodes.push({ t: op.ret ?? Infinity, kind: 1, i, prev: head, next: null, match: null });
   });
-  nodes.sort((a, b) => a.t - b.t || (a.kind === b.kind ? 0 : a.kind === first ? -1 : 1));
+  // Order within one instant t.
+  // Default (closed intervals, like Porcupine): calls, then returns, so everything at t overlaps.
+  // strictTies: returns of operations called before t, then calls, then returns of operations
+  // called at t. A zero-duration operation still has its call before its return.
+  const rank = (x: Node): number => {
+    if (x.kind === 0) return strictTies ? 1 : 0;
+    if (!strictTies) return 1;
+    return (ops[x.i] as Operation).call < x.t ? 0 : 2;
+  };
+  nodes.sort((a, b) => a.t - b.t || rank(a) - rank(b));
   let prev: Node | Head = head;
   const calls: Node[] = new Array<Node>(n);
   for (const node of nodes) {
@@ -157,11 +165,21 @@ function checkPartition<S, I, O>(
  * Checks whether a concurrent history is linearizable with respect to a sequential model.
  * Uses the Wing–Gong search with Lowe's memoisation, as in Porcupine.
  */
+function validateOptions(options: CheckOptions): void {
+  for (const name of ["maxSteps", "timeoutMs"] as const) {
+    const v = options[name];
+    if (v === undefined) continue;
+    if (typeof v !== "number" || Number.isNaN(v) || v < 0)
+      throw new TypeError(`${name} must be a number >= 0 (got ${String(v)})`);
+  }
+}
+
 export function check<S, I, O>(
   model: Model<S, I, O>,
   history: readonly Operation<I, O>[],
   options: CheckOptions = {},
 ): CheckResult {
+  validateOptions(options);
   validate(history);
   const ops = history.map((op, i) => ({ ...op, id: op.id ?? i }));
   const parts = model.partition ? model.partition(ops) : [ops];
@@ -170,13 +188,18 @@ export function check<S, I, O>(
     max: options.maxSteps ?? Infinity,
     deadline: performance.now() + (options.timeoutMs ?? Infinity),
   };
+  // Every partition is checked, so an "illegal" one is reported even if an earlier one ran out
+  // of budget. maxSteps applies to each partition; timeoutMs is one deadline for the whole call.
   let steps = 0;
+  let unknown = false;
   for (let p = 0; p < parts.length; p++) {
     const part = (parts[p] ?? []) as (Operation<I, O> & { id: unknown })[];
+    budget.steps = 0;
     const r = checkPartition(model, part, options.strictTies ?? false, budget);
     steps += r.steps;
     if (r.result === "illegal") return { result: "illegal", steps, partition: p, longest: r.longest };
-    if (r.result === "unknown") return { result: "unknown", steps };
+    if (r.result === "unknown") unknown = true;
   }
+  if (unknown) return { result: "unknown", steps };
   return { result: "ok", steps };
 }
