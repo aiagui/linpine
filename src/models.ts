@@ -1,24 +1,27 @@
 import type { Model, Operation } from "./types.ts";
 
 /**
- * A memo key that keeps NaN, null, undefined, Infinity, -0 and strings apart.
- * Values inside objects and arrays go through JSON.stringify, where NaN and Infinity become null:
- * give such models their own `key`.
+ * A memo key that keeps NaN, null, undefined, Infinity, -0, bigints and strings apart,
+ * also inside arrays and plain objects (keys in insertion order).
  */
 export function stateKey(v: unknown): string {
   switch (typeof v) {
     case "number":
       return Object.is(v, -0) ? "n:-0" : `n:${String(v)}`;
     case "string":
-      return `s:${v}`;
+      return `s:${JSON.stringify(v)}`;
     case "bigint":
       return `b:${String(v)}`;
     case "boolean":
       return `t:${String(v)}`;
     case "undefined":
       return "u";
+    case "object":
+      if (v === null) return "null";
+      if (Array.isArray(v)) return `[${v.map(stateKey).join(",")}]`;
+      return `{${Object.entries(v).map(([k, x]) => `${JSON.stringify(k)}:${stateKey(x)}`).join(",")}}`;
     default:
-      return v === null ? "null" : `j:${JSON.stringify(v)}`;
+      throw new TypeError(`stateKey: cannot key a ${typeof v}; give the model its own key()`);
   }
 }
 

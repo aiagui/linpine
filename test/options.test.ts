@@ -59,3 +59,15 @@ describe("models", () => {
     expect(res).toMatchObject({ result: "illegal", longest: [0, 1, 2] });
   });
 });
+
+describe("stateKey inside objects", () => {
+  it("handles bigints and keeps NaN, Infinity and null apart", () => {
+    expect(() => stateKey({ n: 1n, list: [2n] })).not.toThrow();
+    const keys = [{ v: NaN }, { v: null }, { v: Infinity }, { v: -Infinity }, { v: undefined }, { v: "x" }, [NaN], [null], { v: 1n }, { v: 1 }].map(stateKey);
+    expect(new Set(keys).size).toBe(keys.length);
+  });
+  it("is stable for equal values and distinguishes strings that look alike", () => {
+    expect(stateKey({ a: [1, { b: 2n }] })).toBe(stateKey({ a: [1, { b: 2n }] }));
+    expect(stateKey(["a,b"])).not.toBe(stateKey(["a", "b"]));
+  });
+});
