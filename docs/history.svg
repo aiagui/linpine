@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="894" height="250" viewBox="0 0 894 250" role="img" aria-label="Seed 1: client C reads 944 after write(104) has finished">
+<style>text{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}.lane{fill:#5f6f67;font-size:15px;font-weight:600}.lbl{fill:#fff;font-size:13px;font-weight:600}.ax,.note{fill:#5f6f67;font-size:13px}.g{stroke:#8a9a91;stroke-opacity:.3}.w{fill:#1f7a55}.r{fill:#3fb68a}.x{fill:#e0574f}.pt{fill:#1f7a55}.ptl{fill:#1f7a55;font-size:13px;font-weight:600}@media (prefers-color-scheme:dark){.lane,.ax,.note{fill:#9fb0a7}.ptl{fill:#3fb68a}}</style>
+<line class="g" x1="110" y1="24" x2="110" y2="182"/><text class="ax" x="110" y="200" text-anchor="middle">0</text>
+<line class="g" x1="172" y1="24" x2="172" y2="182"/><text class="ax" x="172" y="200" text-anchor="middle">1</text>
+<line class="g" x1="234" y1="24" x2="234" y2="182"/><text class="ax" x="234" y="200" text-anchor="middle">2</text>
+<line class="g" x1="296" y1="24" x2="296" y2="182"/><text class="ax" x="296" y="200" text-anchor="middle">3</text>
+<line class="g" x1="358" y1="24" x2="358" y2="182"/><text class="ax" x="358" y="200" text-anchor="middle">4</text>
+<line class="g" x1="420" y1="24" x2="420" y2="182"/><text class="ax" x="420" y="200" text-anchor="middle">5</text>
+<line class="g" x1="482" y1="24" x2="482" y2="182"/><text class="ax" x="482" y="200" text-anchor="middle">6</text>
+<line class="g" x1="544" y1="24" x2="544" y2="182"/><text class="ax" x="544" y="200" text-anchor="middle">7</text>
+<line class="g" x1="606" y1="24" x2="606" y2="182"/><text class="ax" x="606" y="200" text-anchor="middle">8</text>
+<line class="g" x1="668" y1="24" x2="668" y2="182"/><text class="ax" x="668" y="200" text-anchor="middle">9</text>
+<line class="g" x1="730" y1="24" x2="730" y2="182"/><text class="ax" x="730" y="200" text-anchor="middle">10</text>
+<line class="g" x1="792" y1="24" x2="792" y2="182"/><text class="ax" x="792" y="200" text-anchor="middle">11</text>
+<line class="g" x1="854" y1="24" x2="854" y2="182"/><text class="ax" x="854" y="200" text-anchor="middle">12</text>
+<text class="lane" x="16" y="58">client A</text>
+<text class="lane" x="16" y="110">client B</text>
+<text class="lane" x="16" y="162">client C</text>
+<rect class="r" x="113" y="92" width="242" height="26" rx="7"/><text class="lbl" x="234.0" y="110" text-anchor="middle">r 0</text>
+<rect class="w" x="237" y="144" width="118" height="26" rx="7"/><text class="lbl" x="296.0" y="162" text-anchor="middle">w 944</text>
+<rect class="w" x="237" y="40" width="180" height="26" rx="7"/><text class="lbl" x="327.0" y="58" text-anchor="middle">w 598</text>
+<rect class="r" x="361" y="92" width="56" height="26" rx="7"/><text class="lbl" x="389.0" y="110" text-anchor="middle">r 924</text>
+<rect class="r" x="361" y="144" width="180" height="26" rx="7"/><text class="lbl" x="451.0" y="162" text-anchor="middle">r 924</text>
+<rect class="pt" x="416" y="34" width="8" height="38" rx="4"/><text class="ptl" x="420" y="30" text-anchor="middle">w 104</text>
+<rect class="r" x="423" y="40" width="180" height="26" rx="7"/><text class="lbl" x="513.0" y="58" text-anchor="middle">r 944</text>
+<rect class="r" x="423" y="92" width="304" height="26" rx="7"/><text class="lbl" x="575.0" y="110" text-anchor="middle">r 944</text>
+<rect class="x" x="547" y="144" width="56" height="26" rx="7"/><text class="lbl" x="575.0" y="162" text-anchor="middle">r 944</text>
+<rect class="r" x="609" y="144" width="118" height="26" rx="7"/><text class="lbl" x="668.0" y="162" text-anchor="middle">r 104</text>
+<rect class="r" x="609" y="40" width="242" height="26" rx="7"/><text class="lbl" x="730.0" y="58" text-anchor="middle">r 104</text>
+<text class="note" x="110" y="232">w = write, r = read. Client C reads 944 at 7–8, after w 104 finished at 5: no valid order exists.</text></svg>
