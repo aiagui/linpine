@@ -73,7 +73,7 @@ describe("stateKey inside objects", () => {
 });
 
 describe("stateKey with non-plain values", () => {
-  it("Orbit's repro: concurrent writes of different Dates, then a read of the first, is ok", () => {
+  it("concurrent writes of different Dates, then a read of the first, is ok", () => {
     const A = new Date(0), B = new Date(1);
     const h = [
       { call: 0, ret: 10, input: { op: "write" as const, value: A } },
