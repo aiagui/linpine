@@ -1,11 +1,19 @@
 {
   "name": "linpine",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "description": "Linearizability checker for TypeScript and Node.js",
   "license": "MIT",
   "author": "Aitor Aguilar",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aiagui/linpine.git"
+  },
+  "homepage": "https://github.com/aiagui/linpine#readme",
+  "bugs": "https://github.com/aiagui/linpine/issues",
+  "keywords": ["linearizability", "concurrency", "testing", "distributed-systems"],
   "type": "module",
+  "sideEffects": false,
   "engines": {
     "node": ">=22.13"
   },
@@ -16,13 +24,15 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "examples/async-store.mjs"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
+    "test:package": "node --experimental-strip-types --no-warnings scripts/test-package.ts",
     "demo": "node --experimental-strip-types --no-warnings examples/cache-demo.ts",
     "prepare": "tsc -p tsconfig.build.json",
     "docs:history": "node --experimental-strip-types --no-warnings scripts/render-history.ts"
