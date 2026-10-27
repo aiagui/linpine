@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/logo.svg" alt="linpine" width="520">
+  <img src="https://raw.githubusercontent.com/aiagui/linpine/main/docs/logo.svg" alt="linpine" width="520">
 </p>
 
 <p align="center">
@@ -33,11 +33,65 @@ const r = check(register(0), history, { timeoutMs: 1000 });
 `result` is `"ok"`, `"illegal"` or `"unknown"` (the step or time budget ran out).
 An operation without `ret` is treated as still pending. `kv()` checks each key on its own.
 
-Install it from GitHub:
+Requires Node.js >=22.13. The package is ESM and includes TypeScript declarations;
+it has no runtime dependencies. Install it from GitHub (this builds with the package's
+development dependencies):
 
 ```sh
 npm install github:aiagui/linpine
 ```
+
+### Try the distribution locally
+
+This checkout prepares version 0.1.0 as the first distribution candidate.
+`private: true` deliberately blocks publication while it is being validated;
+the commands below only create and install local tarballs.
+
+From a checkout:
+
+```sh
+npm ci
+npm run test:package
+npm pack
+```
+
+`test:package` builds and packs the library, installs the tarball offline in a temporary
+project outside the checkout, compiles a strict TypeScript consumer, and runs the compiled
+JavaScript and the integration example. It removes the temporary project afterwards.
+Pass an output directory (`npm run test:package -- /tmp/linpine-dist`) to keep the exact
+tarball that passed these checks. CI runs this check on Node 22 and 24.
+The tarball contains `dist/`, the integration example,
+this README, the license and package metadata; installing it does not require TypeScript.
+
+To try the resulting tarball in your own ESM project:
+
+```sh
+npm install /absolute/path/to/linpine/linpine-0.1.0.tgz
+```
+
+### Integrate an asynchronous store
+
+The executable example in `examples/async-store.mjs` records invocation and response times
+around asynchronous calls using a single monotonic clock. It runs concurrent readers and
+writers, then checks a read made after the write has returned. The tests accept a correct
+store and demonstrate detection of a stale cache:
+
+```sh
+# In this checkout, after npm ci:
+node --test examples/async-store.mjs
+
+# In a project that installed the tarball:
+node --test node_modules/linpine/examples/async-store.mjs
+```
+
+Copy the recording helper and the first test into your suite and replace its
+`createStore()` call with your client, starting with a fresh store whose value is 0.
+The second test is a deliberately broken fixture that demonstrates detection.
+Keep the assertion that the result is `"ok"` for your correctness test:
+`"unknown"` means the budget ran out, not that the store passed.
+Rejected calls fail the example rather than being recorded as successful writes;
+model error responses explicitly if your workload needs them. Use the `kv` model for
+independent keys; cross-key operations need a custom model.
 
 ## Demo
 
@@ -46,11 +100,11 @@ clients run five operations each on a seeded virtual clock, so every seed replay
 history. In about 8% of seeds a client reads a value that was already overwritten.
 
 <p align="center">
-  <img src="docs/demo.gif" alt="Terminal: seed 1 is not linearizable; client C reads 944 after write(104) finished" width="720">
+  <img src="https://raw.githubusercontent.com/aiagui/linpine/main/docs/demo.gif" alt="Terminal: seed 1 is not linearizable; client C reads 944 after write(104) finished" width="720">
 </p>
 
 <p align="center">
-  <img src="docs/history.svg" alt="Timeline of seed 1 with the stale read highlighted" width="820">
+  <img src="https://raw.githubusercontent.com/aiagui/linpine/main/docs/history.svg" alt="Timeline of seed 1 with the stale read highlighted" width="820">
 </p>
 
 ```sh
